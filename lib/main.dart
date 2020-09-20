@@ -10,14 +10,50 @@ class RandomWords extends StatefulWidget {
 
 class _RandomWordsState extends State<RandomWords> {
   final _suggestions = <WordPair>[];
+  final _saved = Set<WordPair>();
   final _biggerFont = TextStyle(fontSize: 18.0);
 
+  void _pushSaved() {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (BuildContext context) {
+      final titles = _saved.map((WordPair pair) {
+        return ListTile(
+          title: Text(
+            pair.asPascalCase,
+            style: _biggerFont,
+          ),
+        );
+      });
+      final divided = ListTile.divideTiles(
+        context: context,
+        tiles: titles,
+      ).toList();
+
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Saved Suggestions'),
+        ),
+        body: ListView(
+          children: divided,
+        ),
+      );
+    }));
+  }
+
   Widget _buildRow(WordPair pair) {
+    final alreadySaved = _saved.contains(pair);
     return ListTile(
       title: Text(
         pair.asPascalCase,
         style: _biggerFont,
       ),
+      trailing: Icon(alreadySaved ? Icons?.favorite : Icons?.favorite_border,
+          color: alreadySaved ? Colors.red : null),
+      onTap: () {
+        setState(() {
+          alreadySaved ? _saved.remove(pair) : _saved.add(pair);
+        });
+      },
     );
   }
 
@@ -47,6 +83,12 @@ class _RandomWordsState extends State<RandomWords> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Startup New Generator'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons?.list),
+            onPressed: _pushSaved,
+          )
+        ],
       ),
       body: _buildSuggestion(),
     );
@@ -57,6 +99,9 @@ class _RandomWordsState extends State<RandomWords> {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Welcome to flutter', home: RandomWords());
+    return MaterialApp(
+        title: 'Welcome to flutter',
+        theme: ThemeData(primaryColor: Colors.blue),
+        home: RandomWords());
   }
 }
